@@ -190,7 +190,13 @@ The remaining 61.3% remain unread.
 
 ## 7. Conclusion & Future Improvements
 ### Summary
-This project **automated data ingestion, transformation, validation, and reporting** for Noora Health.
+This project automates data ingestion, transformation, validation, and visualization for Noora Health’s Remote Engagement Service. It streamlines the process of handling WhatsApp chat data, ensuring data accuracy and reliability while providing actionable insights into user engagement. The pipeline is designed to:
+✅ Ingest raw data from Google Sheets into BigQuery
+✅ Transform and merge messages with statuses for a unified view
+✅ Validate data quality by detecting duplicates, missing values, and inconsistencies
+✅ Visualize key engagement metrics through interactive dashboards
+
+With these capabilities, Noora Health can better track outreach effectiveness, optimize messaging strategies, and enhance patient engagement. Future enhancements include real-time analytics and automated data pipelines to further improve efficiency and responsiveness.
 
 ### Future Enhancements
 - **Automate the pipeline** using **Airflow**
