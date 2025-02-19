@@ -13,44 +13,15 @@ This project processes **WhatsApp chat data** from Noora Health's **Remote Engag
 ## 2. Setup & Prerequisites
 ### Required Tools
 - **Google Cloud Platform (GCP)** with **BigQuery enabled**
-- Python (`pandas`, `google-cloud-bigquery`)
 - SQL (for transformations)
 - Google Looker Studio (for visualization)
 
-### Install Dependencies
-```bash
-pip install google-cloud-bigquery pandas
-```
-
-### Authentication for BigQuery
-Set up a **Service Account** and download a JSON key. Authenticate using:
-```python
-from google.cloud import bigquery
-client = bigquery.Client.from_service_account_json("your_service_account.json")
-```
 
 ## 3. Data Ingestion (Extract & Load)
 ### Upload Data to BigQuery
 1. **Download CSV from Google Sheets**
 2. **Upload to BigQuery** using:
    - BigQuery UI
-   - Python script
-
-### Python Script for Uploading Data
-```python
-import pandas as pd
-from google.cloud import bigquery
-
-client = bigquery.Client.from_service_account_json("your_service_account.json")
-dataset_id = "project-noora-health.Noora_Chat_Data"
-
-df = pd.read_csv("messages_cleaned.csv")
-
-table_id = f"{dataset_id}.messages"
-job = client.load_table_from_dataframe(df, table_id)
-job.result()
-print("Data uploaded successfully!")
-```
 
 ## 4. Data Transformation
 ### Goal: Create a `final_messages` table
