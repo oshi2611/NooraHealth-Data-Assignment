@@ -195,5 +195,6 @@ This project **automated data ingestion, transformation, validation, and reporti
 ### Future Enhancements
 - **Automate the pipeline** using **Airflow**
 - **Optimize query performance** using **partitioning & clustering**
-- **Implement real-time data ingestion** with **Pub/Sub**
+- **Implement real-time data ingestion Pub/Sub and Dataflow to process messages instantly.**
+- **Develop a real-time dashboard in Power BI / Looker using BigQuery BI Engine for low-latency visualizations**
 
