@@ -170,19 +170,19 @@ The cleaned CSV is uploaded as `cleaned_messages.csv`.
 5. **Create Bar Chart for message status**
 
 ### 1️⃣ Total & Active Users Over Time – Weekly trend for the last 3 months.
-![Total & Active Users Over Time](<img width="374" alt="Screenshot 2025-02-19 154045" src="https://github.com/user-attachments/assets/bd77449c-7aab-485e-9aa0-7b8968d073c8" />)
+![Total & Active Users Over Time](https://github.com/oshi2611/NooraHealth-Data-Assignment/blob/main/Screenshot%202025-02-19%20154045.png)
 
 The trend shows how many users are engaging with messages weekly.
 Active users (those who send messages) follow a similar pattern to total users.
 
 ### 2️⃣ Fraction of Sent Messages Read & Read Time Analysis – How many outbound messages are read and their response time.
-![Fraction of Sent Messages Read](<img width="281" alt="Screenshot 2025-02-19 154209" src="https://github.com/user-attachments/assets/dcd0a37e-d53a-47fe-ae79-3a746c57035f" />)
+![Fraction of Sent Messages Read](https://github.com/oshi2611/NooraHealth-Data-Assignment/blob/main/Screenshot%202025-02-19%20154209.png)
 
 38.7% of sent messages have been read.
 The remaining 61.3% remain unread.
 
 ### 3️⃣ Outbound Messages by Status in the Last Week – Breakdown of message statuses.
-![Outbound Messages by Status](<img width="369" alt="Screenshot 2025-02-19 154250" src="https://github.com/user-attachments/assets/e4350b51-8933-4601-bb0c-ebc7414bc9f8" />)
+![Outbound Messages by Status](https://github.com/oshi2611/NooraHealth-Data-Assignment/blob/main/Screenshot%202025-02-19%20154250.png)
 
 19 messages were sent  
 14 messages were read  
