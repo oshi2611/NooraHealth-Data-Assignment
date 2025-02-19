@@ -14,12 +14,12 @@ This project processes **WhatsApp chat data** from Noora Health's **Remote Engag
 ### Required Tools
 - **Google Cloud Platform (GCP)** with **BigQuery enabled**
 - SQL (for transformations)
-- Google Looker Studio (for visualization)
+- PowerBI (for visualization)
 
 
 ## 3. Data Ingestion (Extract & Load)
 ### Upload Data to BigQuery
-1. **Download CSV from Google Sheets**
+1. **Download as CSV from Google Sheets**
 2. **Upload to BigQuery** using:
    - BigQuery UI
 
@@ -27,78 +27,155 @@ This project processes **WhatsApp chat data** from Noora Health's **Remote Engag
 ### Goal: Create a `final_messages` table
 We merged `messages` and `statuses` tables to have **one row per message**.
 
+SQL Query used to merge the 2 tables based on the message ID
+```SQL
+SELECT 
+    m.id AS message_id, 
+    m.message_type, 
+    m.masked_addressees, 
+    m.masked_author, 
+    m.content, 
+    m.author_type, 
+    m.direction, 
+    m.external_id, 
+    m.external_timestamp, 
+    m.masked_from_addr, 
+    m.is_deleted, 
+    m.last_status, 
+    m.last_status_timestamp, 
+    m.rendered_content, 
+    m.source_type, 
+    m.uuid AS message_uuid, 
+    m.inserted_at AS inserted_at_x, 
+    m.updated_at AS updated_at_x, 
+    s.id AS status_id, 
+    s.status, 
+    s.timestamp, 
+    s.message_uuid, 
+    s.number_id, 
+    s.inserted_at AS inserted_at_y, 
+    s.updated_at AS updated_at_y
+FROM `project-noora-health.Noora_Chat_Data.messages_final` m
+LEFT JOIN `project-noora-health.Noora_Chat_Data.statuses` s 
+ON m.id = s.message_id;
+```
+The merged csv is uploaded as merged_messages.csv
+
+
+## 5. Data Validation :
+   i. Detect Duplicate Messages. (Consistency)
+  ii. Check for missing critical fields. (Completeness)
+ iii. Verify Status Upadate for messages. (Quality)
+
 ### SQL Queries Used
-#### Get Latest Status for Each Message
+#### Consistency
 ```sql
-WITH latest_status AS (
-    SELECT DISTINCT ON (message_uuid)
-        message_uuid, status, timestamp AS last_status_timestamp
-    FROM `project-noora-health.Noora_Chat_Data.statuses`
-    ORDER BY message_uuid, timestamp DESC
+WITH DuplicateRecords AS (
+    SELECT 
+        id, 
+        content, 
+        inserted_at,
+        LAG(inserted_at) OVER (PARTITION BY content ORDER BY inserted_at) AS prev_inserted_at
+    FROM `project-noora-health.Noora_Chat_Data.combined_messages_final`
 )
-SELECT
-    m.id, m.content, m.direction, m.external_timestamp, m.is_deleted,
-    l.status AS last_status, l.last_status_timestamp,
-    m.inserted_at, m.updated_at
-FROM `project-noora-health.Noora_Chat_Data.messages` m
-LEFT JOIN latest_status l
-ON m.uuid = l.message_uuid;
+SELECT 
+    id, 
+    content, 
+    inserted_at,
+    CASE 
+        WHEN prev_inserted_at IS NOT NULL 
+             AND ABS(strftime('%s', inserted_at) - strftime('%s', prev_inserted_at)) <= 60 
+        THEN 'Duplicate' 
+        ELSE 'Unique' 
+    END AS flag
+FROM DuplicateRecords;
+```
+The flagged csv is uploaded as flagged_messages.csv 
+
+### Completeness
+```sql
+SELECT 
+    COUNT(*) AS missing_records 
+FROM `project-noora-health.Noora_Chat_Data.combined_messages_final`
+WHERE content IS NULL 
+   OR inserted_at_x IS NULL 
+   OR status IS NULL;
+```
+### Quality
+```sql
+SELECT message_id, COUNT(DISTINCT status) AS unique_status_count
+FROM `project-noora-health.Noora_Chat_Data.combined_messages_final`
+GROUP BY message_id
+HAVING unique_status_count > 1;
 ```
 
-## 5. Data Validation
-### Check for Missing Values
+Here are the results of the data validation checks:
+
+1️⃣ Missing Critical Fields (Completeness): 🚨 32,158 records have missing values in either content, inserted_at_x, or status.
+2️⃣ Duplicate Messages (Consistency): ⚠️ 1,577 records have identical content with timestamps within 1 minute.
+3️⃣ Conflicting Status Updates (Quality): ❗ 11,578 messages have multiple conflicting statuses.
+
+These indicate potential data quality issues. And so a cleaned_messages csv was generated using following queries
+
+SQL query used for cleansing the data 
 ```sql
-SELECT *
-FROM `project-noora-health.Noora_Chat_Data.messages`
-WHERE content IS NULL OR external_timestamp IS NULL;
+DELETE FROM `project-noora-health.Noora_Chat_Data.combined_messages_final`
+WHERE content IS NULL 
+   OR inserted_at_x IS NULL 
+   OR status IS NULL;
 ```
-### Identify Duplicate Messages
+
 ```sql
-SELECT
-    id, content, inserted_at,
-    COUNT(*) OVER (
-        PARTITION BY content
-        ORDER BY inserted_at
-        ROWS BETWEEN 5 PRECEDING AND CURRENT ROW
-    ) AS duplicate_flag
-FROM `project-noora-health.Noora_Chat_Data.messages`;
+WITH DuplicateCheck AS (
+    SELECT 
+        id_x, 
+        content, 
+        inserted_at_x, 
+        LEAD(inserted_at_x) OVER (PARTITION BY content ORDER BY inserted_at_x) AS next_inserted_at
+    FROM `project-noora-health.Noora_Chat_Data.combined_messages_final`
+)
+DELETE FROM `project-noora-health.Noora_Chat_Data.combined_messages_final`
+WHERE id_x IN (
+    SELECT id_x FROM DuplicateCheck 
+    WHERE next_inserted_at IS NOT NULL 
+      AND ABS(strftime('%s', inserted_at_x) - strftime('%s', next_inserted_at)) <= 60
+);
+
 ```
+```sql
+WITH RankedMessages AS (
+    SELECT 
+        id_x, 
+        status, 
+        inserted_at_x,
+        ROW_NUMBER() OVER (PARTITION BY id_x ORDER BY inserted_at_x DESC) AS rank
+    FROM `project-noora-health.Noora_Chat_Data.combined_messages_final`
+)
+DELETE FROM `project-noora-health.Noora_Chat_Data.combined_messages_final`
+WHERE id_x IN (
+    SELECT id_x FROM RankedMessages WHERE rank > 1
+);
+```
+The cleaned csv is uploaded as cleaned_messages.csv 
 
 ## 6. Data Visualization
-We used **Google Looker Studio** to visualize:
-✅ Total vs. Active Users Over Time  
-✅ Read Rate & Message Read Time  
-✅ Message Status Distribution  
-
-### SQL Query for Active Users Over Time
-```sql
-SELECT
-    DATE_TRUNC(DATE(external_timestamp), WEEK) AS week,
-    COUNT(DISTINCT masked_from_addr) AS total_users,
-    COUNT(DISTINCT CASE WHEN direction = 'inbound' THEN masked_from_addr END) AS active_users
-FROM `project-noora-health.Noora_Chat_Data.messages`
-GROUP BY week
-ORDER BY week;
-```
-
 ### Steps to Create Dashboard
-1. **Go to Looker Studio**
+1. **Go to Power BI**
 2. **Connect BigQuery dataset**
 3. **Create Line Chart for weekly user trends**
-4. **Create Bar Chart for message status**
+4. **Create Pie Chart for Read and Unread message %**
+5. **Create Bar Chart for message status**
 
-## 7. How to Run the Project
-### Steps to Execute
-1. **Run Data Upload Script**
-   ```bash
-   python upload_data.py
-   ```
-2. **Run SQL Transformations in BigQuery**  
-   - Execute `transform.sql` in BigQuery console.  
+1️⃣ Total & Active Users Over Time – Weekly trend for the last 3 months.
+<img width="372" alt="image" src="https://github.com/user-attachments/assets/55a4e51c-af2c-4507-a242-fba3f8ec626e" />
 
-3. **Generate Reports in Looker Studio**  
-   - Connect **final_messages** table.  
-   - Create visualizations.  
+2️⃣ Fraction of Sent Messages Read & Read Time Analysis – How many outbound messages are read and their response time.
+<img width="281" alt="image" src="https://github.com/user-attachments/assets/93f55847-6ad3-45e7-9c34-f6b66d32e505" />
+
+3️⃣ Outbound Messages by Status in the Last Week – Breakdown of message statuses.
+<img width="372" alt="image" src="https://github.com/user-attachments/assets/7754cbe0-efd8-49f1-9110-1c8dbfbe5cb4" />
+
+
 
 ## 8. Conclusion & Future Improvements
 ### Summary
@@ -108,11 +185,4 @@ This project **automated data ingestion, transformation, validation, and reporti
 - **Automate the pipeline** using **Airflow**
 - **Optimize query performance** using **partitioning & clustering**
 - **Implement real-time data ingestion** with **Pub/Sub**
-
-## 9. Submitting the Assignment
-### Steps to Submit:
-1. **Upload Code & Queries to GitHub**
-2. **Include this README.md**
-3. **(Optional) Record a Short Loom Video**
-4. **Send the GitHub Repo Link to the Hiring Team**
 
