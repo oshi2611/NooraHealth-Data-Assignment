@@ -24,7 +24,7 @@ This project processes **WhatsApp chat data** from Noora Health's **Remote Engag
    - BigQuery UI
 
 ## 4. Data Transformation
-### Goal: Create a `final_messages` table
+### Goal: Create a `combined_messages` table
 We merged `messages` and `statuses` tables to have **one row per message**.
 
 SQL Query used to merge the 2 tables based on the message ID
