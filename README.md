@@ -112,7 +112,9 @@ HAVING unique_status_count > 1;
 Here are the results of the data validation checks:
 
 1️⃣ Missing Critical Fields (Completeness): 🚨 32,158 records have missing values in either content, inserted_at_x, or status.
+
 2️⃣ Duplicate Messages (Consistency): ⚠️ 1,577 records have identical content with timestamps within 1 minute.
+
 3️⃣ Conflicting Status Updates (Quality): ❗ 11,578 messages have multiple conflicting statuses.
 
 These indicate potential data quality issues. And so a cleaned_messages csv was generated using following queries
@@ -168,16 +170,19 @@ The cleaned csv is uploaded as cleaned_messages.csv
 
 1️⃣ Total & Active Users Over Time – Weekly trend for the last 3 months.
 <img width="372" alt="image" src="https://github.com/user-attachments/assets/55a4e51c-af2c-4507-a242-fba3f8ec626e" />
+
 The trend shows how many users are engaging with messages weekly.
 Active users (those who send messages) follow a similar pattern to total users.
 
 2️⃣ Fraction of Sent Messages Read & Read Time Analysis – How many outbound messages are read and their response time.
 <img width="281" alt="image" src="https://github.com/user-attachments/assets/93f55847-6ad3-45e7-9c34-f6b66d32e505" />
+
 38.7% of sent messages have been read.
 The remaining 61.3% remain unread.
 
 3️⃣ Outbound Messages by Status in the Last Week – Breakdown of message statuses.
 <img width="372" alt="image" src="https://github.com/user-attachments/assets/7754cbe0-efd8-49f1-9110-1c8dbfbe5cb4" />
+
 19 messages were sent
 14 messages were read
 9 messages were delivered but not read
