@@ -169,6 +169,25 @@ The cleaned CSV is uploaded as `cleaned_messages.csv`.
 4. **Create Pie Chart for Read and Unread message %**
 5. **Create Bar Chart for message status**
 
+### 1️⃣ Total & Active Users Over Time – Weekly trend for the last 3 months.
+![Total & Active Users Over Time](<img width="372" alt="image" src="https://github.com/user-attachments/assets/55a4e51c-af2c-4507-a242-fba3f8ec626e" />)
+
+The trend shows how many users are engaging with messages weekly.
+Active users (those who send messages) follow a similar pattern to total users.
+
+### 2️⃣ Fraction of Sent Messages Read & Read Time Analysis – How many outbound messages are read and their response time.
+![Fraction of Sent Messages Read](<img width="281" alt="image" src="https://github.com/user-attachments/assets/93f55847-6ad3-45e7-9c34-f6b66d32e505" />)
+
+38.7% of sent messages have been read.
+The remaining 61.3% remain unread.
+
+### 3️⃣ Outbound Messages by Status in the Last Week – Breakdown of message statuses.
+![Outbound Messages by Status](<img width="372" alt="image" src="https://github.com/user-attachments/assets/7754cbe0-efd8-49f1-9110-1c8dbfbe5cb4" />)
+
+19 messages were sent  
+14 messages were read  
+9 messages were delivered but not read  
+
 ## 7. Conclusion & Future Improvements
 ### Summary
 This project **automated data ingestion, transformation, validation, and reporting** for Noora Health.
